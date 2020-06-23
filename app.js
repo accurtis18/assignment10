@@ -9,6 +9,7 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
+let employees = [];
 
 console.log("Hello, you're the manager of this team.")
 inquirer
@@ -41,6 +42,7 @@ inquirer
     ])
     .then(async answers => {
         const manager = new Manager(answers.name, answers.id, answers.email, answers.office);
+        employees.push(manager);
         await createTeam(answers.teamMembers);
     })
 
@@ -75,15 +77,22 @@ inquirer
                     if(answers.memberType === 'Engineer'){
                         let github = await createEng();
                         const e = new Engineer(answers.name, answers.id, answers.email, github);
+                        employees.push(e);
                         console.log(e);
                     } else{
                         let school = await createIntern();
-                        const intern = await new Intern(answers.name, answers.id, answers.email, school);
+                        const intern = new Intern(answers.name, answers.id, answers.email, school);
+                        employees.push(intern);
                         console.log(intern);
                     }
                 })
                 i++;
         }
+        let response = await render(employees);
+        fs.writeFile(outputPath, response, function(err){
+            if(err) throw err;
+            console.log("Created successfully");
+        })
     }
 
     async function createEng(){
